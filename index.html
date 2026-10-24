@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex,nofollow,noarchive" />
+<title>Count On Me</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif; background: #f8fafc; color: #0f172a; }
+  header { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid #e2e8f0; padding: 10px 12px; }
+  header strong { font-size: 16px; }
+  select { width: 100%; margin-top: 8px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; font: inherit; }
+  main { padding: 12px 12px 168px; }
+  .line { padding: 12px 4px; border-bottom: 1px solid #f1f5f9; }
+  .line b { display: block; font-size: 18px; line-height: 1.45; }
+  .line small { color: #64748b; }
+  .line.on b { color: #b45309; }
+  .row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
+  button, textarea { font: inherit; }
+  .chip { border: 1px solid #e2e8f0; background: #fff; border-radius: 999px; padding: 10px 14px; min-height: 40px; white-space: nowrap; }
+  .play { width: 48px; height: 48px; border: 0; border-radius: 999px; background: #f59e0b; color: #fff; font-size: 18px; }
+  .nav button { border: 0; background: transparent; min-height: 48px; padding: 8px 2px; font-size: 13px; color: #64748b; }
+  .chip.on { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+  .chunk { display: inline-block; margin: 4px 4px 0 0; padding: 8px 10px; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; }
+  .opt { display: block; width: 100%; text-align: left; margin-top: 8px; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; }
+  .opt.good { border-color: #10b981; background: #ecfdf5; }
+  .opt.bad { border-color: #f43f5e; background: #fff1f2; }
+  textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; }
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid #e2e8f0; padding-bottom: env(safe-area-inset-bottom); }
+  .transport { display: flex; align-items: center; gap: 8px; padding: 8px 10px 0; }
+  .transport input { flex: 1; accent-color: #f59e0b; }
+  .nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .nav button.on { color: #b45309; font-weight: 700; }
+  .mv { position: relative; max-width: 420px; margin: 0 auto; min-height: 62vh; aspect-ratio: 9/16; background: #111827; border-radius: 18px; overflow: hidden; }
+  .mv video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mvcap { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.78)); }
+  .mvcap b { display: block; font-size: 22px; line-height: 1.35; }
+  .mvcap p { margin: 8px 0 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <strong id="title">Count On Me</strong>
+  <select id="songs"></select>
+</header>
+<main id="stage"><div class="line"><b>If you ever find yourself stuck in the middle of the sea</b><small>要是有一天你被困在海上</small></div><div class="line"><b>I'll sail the world to find you</b><small>我会航行到世界尽头去找你</small></div><div class="line"><b>If you ever find yourself lost in the dark and you can't see</b><small>要是有一天你在黑暗里什么也看不见</small></div><div class="line"><b>I'll be the light to guide you</b><small>我会变成光照着你</small></div><div class="line"><b>Find out what we're made of</b><small>看看我们到底是什么样的人</small></div><div class="line"><b>When we are called to help our friends in need</b><small>当朋友需要帮忙的时候</small></div><div class="line"><b>You can count on me</b><small>你可以靠着我</small></div><div class="line"><b>Like one, two, three, I'll be there</b><small>像一二三，我就在</small></div><div class="line"><b>And I know when I need it</b><small>我也知道，当我需要的时候</small></div><div class="line"><b>I can count on you</b><small>我可以靠着你</small></div><div class="line"><b>Like four, three, two, and you'll be there</b><small>像四三二，你也会在</small></div><div class="line"><b>'Cause that's what friends are supposed to do, ah yeah</b><small>因为朋友就该这样</small></div><div class="line"><b>Ooh, ooh, yeah, yeah</b><small>喔，耶</small></div><div class="line"><b>If you're tossing and you're turning and you just can't fall asleep</b><small>要是你翻来覆去睡不着</small></div><div class="line"><b>I'll sing a song beside you</b><small>我就在你身边唱歌</small></div><div class="line"><b>And if you ever forget how much you really mean to me</b><small>要是你忘了你对我有多重要</small></div><div class="line"><b>Every day I will remind you</b><small>我每天都会提醒你</small></div><div class="line"><b>Oh</b><small>哦</small></div><div class="line"><b>We find out what we're made of</b><small>我们会看清自己是什么样的人</small></div><div class="line"><b>When we are called to help our friends in need</b><small>当朋友需要帮忙的时候</small></div><div class="line"><b>You can count on me</b><small>你可以靠着我</small></div><div class="line"><b>Like one, two, three, I'll be there</b><small>像一二三，我就在</small></div><div class="line"><b>And I know when I need it</b><small>我也知道，当我需要的时候</small></div><div class="line"><b>I can count on you</b><small>我可以靠着你</small></div><div class="line"><b>Like four, three, two, and you'll be there</b><small>像四三二，你也会在</small></div><div class="line"><b>'Cause that's what friends are supposed to do, ah yeah</b><small>因为朋友就该这样</small></div><div class="line"><b>Ooh, ooh, yeah, yeah</b><small>喔，耶</small></div><div class="line"><b>You'll always have my shoulder when you cry</b><small>你哭的时候，肩膀一直在</small></div><div class="line"><b>I'll never let go, never say goodbye</b><small>我不会松手，也不会说再见</small></div><div class="line"><b>You know you can count on me</b><small>你知道你可以靠着我</small></div><div class="line"><b>Like one, two, three, I'll be there</b><small>像一二三，我就在</small></div><div class="line"><b>And I know when I need it</b><small>我也知道，当我需要的时候</small></div><div class="line"><b>I can count on you</b><small>我可以靠着你</small></div><div class="line"><b>Like four, three, two, and you'll be there</b><small>像四三二，你也会在</small></div><div class="line"><b>'Cause that's what friends are supposed to do, ah yeah</b><small>因为朋友就该这样</small></div><div class="line"><b>Ooh, ooh</b><small>喔</small></div><div class="line"><b>You can count on me 'cause I can count on you</b><small>你可以靠着我，因为我也可以靠着你</small></div></main>
+<div class="dock">
+  <div class="transport">
+    <button class="play" id="play" type="button">▶</button>
+    <button class="chip" id="prev" type="button">上一句</button>
+    <button class="chip" id="next" type="button">下一句</button>
+    <button class="chip" id="loop" type="button">循环这句</button>
+    <input id="seek" type="range" min="0" max="0" step="0.1" value="0" aria-label="进度" />
+    <input id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="音量" style="max-width:72px" />
+  </div>
+  <div class="row" id="speeds" style="padding:8px 10px 0"></div>
+  <nav class="nav">
+    <button type="button" data-mode="mv">欣赏</button>
+    <button type="button" data-mode="listen">歌词</button>
+    <button type="button" data-mode="grammar">这几句</button>
+    <button type="button" data-mode="karaoke">填空</button>
+    <button type="button" data-mode="builder">自己的</button>
+  </nav>
+</div>
+<audio id="audio" preload="none"></audio>
+<script>
+const SONGS = [{"title":"Count On Me","artist":"Bruno Mars","duration":197.41375,"audioUrl":"audio/03_Bruno_Mars_-_Count_On_Me.mp3","videoUrl":"mv/count-on-me-fast.mp4","videoPoster":"mv/count-on-me-poster.jpg","focus":"以后的事，If 后面当现在说","example":{"kind":"made","text":"If it rains tomorrow, I will stay at home.","grammarPoint":"以后的事，If 后面当现在说","patternTemplate":"If + 现在","cloze":{"blankWord":"rains","sentenceWithBlank":"If it _____ tomorrow, I will stay at home.","hint":"两件都是以后的事。If 后面说 rains，不说 will rain。will 留在 I will stay。","options":["rains","will rain","rained","raining"]}},"lines":[{"text":"If you ever find yourself stuck in the middle of the sea","translation":"要是有一天你被困在海上","startTime":5.31,"endTime":10.71,"fullText":"If you ever find yourself stuck in the middle of the sea, I'll sail the world to find you","cloze":{"blankWord":"find","sentenceWithBlank":"If you ever _____ yourself stuck in the middle of the sea, I'll sail the world to find you","hint":"两件都是以后的事。这里说 find，不说 will find。","options":["find","will find","found","finding"]}},{"text":"I'll sail the world to find you","translation":"我会航行到世界尽头去找你","startTime":10.71,"endTime":16.08,"fullText":"I'll sail the world to find you"},{"text":"If you ever find yourself lost in the dark and you can't see","translation":"要是有一天你在黑暗里什么也看不见","startTime":16.08,"endTime":21.28,"fullText":"If you ever find yourself lost in the dark and you can't see, I'll be the light to guide you","cloze":{"blankWord":"find","sentenceWithBlank":"If you ever _____ yourself lost in the dark and you can't see, I'll be the light to guide you","hint":"两件都是以后的事。这里说 find，不说 will find。","options":["find","will find","found","finding"]}},{"text":"I'll be the light to guide you","translation":"我会变成光照着你","startTime":21.28,"endTime":26.17,"fullText":"I'll be the light to guide you"},{"text":"Find out what we're made of","translation":"看看我们到底是什么样的人","startTime":28.47,"endTime":32.1,"fullText":"Find out what we're made of"},{"text":"When we are called to help our friends in need","translation":"当朋友需要帮忙的时候","startTime":32.1,"endTime":36.99,"fullText":"When we are called to help our friends in need"},{"text":"You can count on me","translation":"你可以靠着我","startTime":37.14,"endTime":39.95,"fullText":"You can count on me"},{"text":"Like one, two, three, I'll be there","translation":"像一二三，我就在","startTime":39.95,"endTime":45.76,"fullText":"Like one, two, three, I'll be there"},{"text":"And I know when I need it","translation":"我也知道，当我需要的时候","startTime":45.76,"endTime":48.1,"fullText":"And I know when I need it"},{"text":"I can count on you","translation":"我可以靠着你","startTime":48.1,"endTime":50.75,"fullText":"I can count on you"},{"text":"Like four, three, two, and you'll be there","translation":"像四三二，你也会在","startTime":50.75,"endTime":56.4,"fullText":"Like four, three, two, and you'll be there"},{"text":"'Cause that's what friends are supposed to do, ah yeah","translation":"因为朋友就该这样","startTime":56.4,"endTime":60.78,"fullText":"'Cause that's what friends are supposed to do, ah yeah"},{"text":"Ooh, ooh, yeah, yeah","translation":"喔，耶","startTime":60.78,"endTime":69.83,"fullText":"Ooh, ooh, yeah, yeah"},{"text":"If you're tossing and you're turning and you just can't fall asleep","translation":"要是你翻来覆去睡不着","startTime":70.08,"endTime":75.41,"fullText":"If you're tossing and you're turning and you just can't fall asleep, I'll sing a song beside you","cloze":{"blankWord":"you're","sentenceWithBlank":"If _____ tossing and you're turning and you just can't fall asleep, I'll sing a song beside you","hint":"两件都是以后的事。这里说 you're，不说 you'll。","options":["you're","you'll","you were","you'll be"]}},{"text":"I'll sing a song beside you","translation":"我就在你身边唱歌","startTime":75.41,"endTime":80.59,"fullText":"I'll sing a song beside you"},{"text":"And if you ever forget how much you really mean to me","translation":"要是你忘了你对我有多重要","startTime":80.59,"endTime":85.93,"fullText":"And if you ever forget how much you really mean to me, Every day I will remind you","cloze":{"blankWord":"forget","sentenceWithBlank":"And if you ever _____ how much you really mean to me, Every day I will remind you","hint":"两件都是以后的事。这里说 forget，不说 will forget。","options":["forget","will forget","forgot","forgetting"]}},{"text":"Every day I will remind you","translation":"我每天都会提醒你","startTime":85.93,"endTime":90.63,"fullText":"Every day I will remind you"},{"text":"Oh","translation":"哦","startTime":91.08,"endTime":93.06,"fullText":"Oh"},{"text":"We find out what we're made of","translation":"我们会看清自己是什么样的人","startTime":93.06,"endTime":96.9,"fullText":"We find out what we're made of"},{"text":"When we are called to help our friends in need","translation":"当朋友需要帮忙的时候","startTime":96.9,"endTime":101.66,"fullText":"When we are called to help our friends in need"},{"text":"You can count on me","translation":"你可以靠着我","startTime":102.03,"endTime":104.86,"fullText":"You can count on me"},{"text":"Like one, two, three, I'll be there","translation":"像一二三，我就在","startTime":104.86,"endTime":110.51,"fullText":"Like one, two, three, I'll be there"},{"text":"And I know when I need it","translation":"我也知道，当我需要的时候","startTime":110.51,"endTime":112.83,"fullText":"And I know when I need it"},{"text":"I can count on you","translation":"我可以靠着你","startTime":112.83,"endTime":115.5,"fullText":"I can count on you"},{"text":"Like four, three, two, and you'll be there","translation":"像四三二，你也会在","startTime":115.5,"endTime":121.02,"fullText":"Like four, three, two, and you'll be there"},{"text":"'Cause that's what friends are supposed to do, ah yeah","translation":"因为朋友就该这样","startTime":121.02,"endTime":125.57,"fullText":"'Cause that's what friends are supposed to do, ah yeah"},{"text":"Ooh, ooh, yeah, yeah","translation":"喔，耶","startTime":125.57,"endTime":134.62,"fullText":"Ooh, ooh, yeah, yeah"},{"text":"You'll always have my shoulder when you cry","translation":"你哭的时候，肩膀一直在","startTime":134.63,"endTime":145.48,"fullText":"You'll always have my shoulder when you cry"},{"text":"I'll never let go, never say goodbye","translation":"我不会松手，也不会说再见","startTime":145.48,"endTime":153.92,"fullText":"I'll never let go, never say goodbye"},{"text":"You know you can count on me","translation":"你知道你可以靠着我","startTime":153.93,"endTime":158.56,"fullText":"You know you can count on me"},{"text":"Like one, two, three, I'll be there","translation":"像一二三，我就在","startTime":158.56,"endTime":164.25,"fullText":"Like one, two, three, I'll be there"},{"text":"And I know when I need it","translation":"我也知道，当我需要的时候","startTime":164.25,"endTime":166.66,"fullText":"And I know when I need it"},{"text":"I can count on you","translation":"我可以靠着你","startTime":166.66,"endTime":169.22,"fullText":"I can count on you"},{"text":"Like four, three, two, and you'll be there","translation":"像四三二，你也会在","startTime":169.22,"endTime":174.88,"fullText":"Like four, three, two, and you'll be there"},{"text":"'Cause that's what friends are supposed to do, ah yeah","translation":"因为朋友就该这样","startTime":174.88,"endTime":179.54,"fullText":"'Cause that's what friends are supposed to do, ah yeah"},{"text":"Ooh, ooh","translation":"喔","startTime":179.54,"endTime":185.79,"fullText":"Ooh, ooh"},{"text":"You can count on me 'cause I can count on you","translation":"你可以靠着我，因为我也可以靠着你","startTime":185.79,"endTime":191.46,"fullText":"You can count on me 'cause I can count on you"}]},{"title":"Talking to the Moon","artist":"Bruno Mars","duration":218.38,"audioUrl":"audio/04_Bruno_Mars_-_Talking_to_the_Moon.mp3","videoUrl":"mv/moon-fast.mp4","videoPoster":"mv/poster.jpg","focus":"已经说过的事，嘴里用现在说","example":{"kind":"made","text":"They say I stay up too late.","grammarPoint":"已经说过的事，嘴里用现在说","patternTemplate":"They say","cloze":{"blankWord":"say","sentenceWithBlank":"They _____ I stay up too late.","hint":"别人已经这么说了。嘴里用 say，不用 said。","options":["say","said","will say","says"]}},"lines":[{"text":"I know you're somewhere out there","translation":"我知道你在某个地方","startTime":1,"endTime":3.6,"fullText":"I know you're somewhere out there"},{"text":"Somewhere far away","translation":"在很远的地方","startTime":3.6,"endTime":7,"fullText":"Somewhere far away"},{"text":"I want you back","translation":"我想你回来","startTime":7,"endTime":10,"fullText":"I want you back"},{"text":"I want you back","translation":"我想你回来","startTime":10,"endTime":14,"fullText":"I want you back"},{"text":"My neighbors think I'm crazy","translation":"邻居觉得我疯了","startTime":14,"endTime":17,"fullText":"My neighbors think I'm crazy"},{"text":"But they don't understand","translation":"可他们不懂","startTime":17,"endTime":20,"fullText":"But they don't understand"},{"text":"You're all I had","translation":"我只有你","startTime":20,"endTime":23,"fullText":"You're all I had"},{"text":"You're all I had","translation":"我只有你","startTime":23,"endTime":28,"fullText":"You're all I had"},{"text":"At night, when the stars light up my room","translation":"夜里，星星照亮我的房间","startTime":28,"endTime":35.2,"fullText":"At night, when the stars light up my room"},{"text":"I sit by myself","translation":"我一个人坐着","startTime":35.2,"endTime":40,"fullText":"I sit by myself"},{"text":"Talking to the moon","translation":"对着月亮说话","startTime":40,"endTime":45,"fullText":"Talking to the moon"},{"text":"Trying to get to you","translation":"想够到你","startTime":45,"endTime":53,"fullText":"Trying to get to you"},{"text":"In hopes you're on the other side","translation":"希望你在另一边","startTime":53,"endTime":57,"fullText":"In hopes you're on the other side"},{"text":"Talking to me too","translation":"也在跟我说话","startTime":57,"endTime":60.5,"fullText":"Talking to me too"},{"text":"Or am I a fool who sits alone","translation":"还是我只是个傻瓜，一个人坐着","startTime":60.5,"endTime":65,"fullText":"Or am I a fool who sits alone"},{"text":"Talking to the moon?","translation":"对着月亮说话","startTime":65,"endTime":69,"fullText":"Talking to the moon?"},{"text":"I'm feeling like I'm famous, the talk of the town","translation":"我感觉自己像个名人，满城都在议论","startTime":69,"endTime":79,"fullText":"I'm feeling like I'm famous, the talk of the town"},{"text":"They say I've gone mad","translation":"他们说我已经疯了","startTime":79,"endTime":83,"fullText":"They say I've gone mad","cloze":{"blankWord":"say","sentenceWithBlank":"They _____ I've gone mad.","hint":"别人已经这么说了。嘴里用 say，不用 said。","options":["say","said","will say","says"]}},{"text":"Yeah, I've gone mad","translation":"对，我已经疯了","startTime":83,"endTime":87,"fullText":"Yeah, I've gone mad"},{"text":"But they don't know what I know","translation":"可他们不知道我知道的事","startTime":87,"endTime":89,"fullText":"But they don't know what I know"},{"text":"'Cause when the sun goes down, someone's talking back","translation":"因为太阳落下去，就有人在回话","startTime":89,"endTime":97,"fullText":"'Cause when the sun goes down, someone's talking back"},{"text":"Yeah, they're talking back","translation":"对，他们在回话","startTime":97,"endTime":99,"fullText":"Yeah, they're talking back"},{"text":"At night, when the stars light up my room","translation":"夜里，星星照亮我的房间","startTime":99,"endTime":106,"fullText":"At night, when the stars light up my room"},{"text":"I sit by myself","translation":"我一个人坐着","startTime":106,"endTime":110,"fullText":"I sit by myself"},{"text":"Talking to the moon","translation":"对着月亮说话","startTime":110,"endTime":117,"fullText":"Talking to the moon"},{"text":"Trying to get to you","translation":"想够到你","startTime":117,"endTime":125,"fullText":"Trying to get to you"},{"text":"In hopes you're on the other side talking to me too","translation":"希望你在另一边，也在跟我说话","startTime":125,"endTime":131,"fullText":"In hopes you're on the other side talking to me too"},{"text":"Or am I a fool who sits alone talking to the moon?","translation":"还是我只是个傻瓜，一个人对着月亮说话","startTime":131,"endTime":148,"fullText":"Or am I a fool who sits alone talking to the moon?"},{"text":"Do you ever hear me calling?","translation":"你听得到我在叫你吗","startTime":148,"endTime":161,"fullText":"Do you ever hear me calling?"},{"text":"'Cause every night, I'm talking to the moon","translation":"因为每个晚上我都在对月亮说话","startTime":161,"endTime":169,"fullText":"'Cause every night, I'm talking to the moon"},{"text":"Still trying to get to you","translation":"还在想够到你","startTime":169,"endTime":178,"fullText":"Still trying to get to you"},{"text":"In hopes you're on the other side talking to me too","translation":"希望你在另一边，也在跟我说话","startTime":178,"endTime":184,"fullText":"In hopes you're on the other side talking to me too"},{"text":"Or am I a fool who sits alone talking to the moon?","translation":"还是我只是个傻瓜，一个人对着月亮说话","startTime":184,"endTime":218.38,"fullText":"Or am I a fool who sits alone talking to the moon?"}]}];
+const DEEPSEEK_KEY = "";
+const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
+const audio = document.getElementById("audio");
+const stage = document.getElementById("stage");
+let index = 0;
+let mode = "listen";
+let rate = 1;
+let shown = -1;
+let grammarIndex = 0;
+let subtitles = "both";
+let loopLine = null;
+let quizIndex = 0;
+let quizAnswer = "";
+let quizLocked = false;
+let quizScore = 0;
+function song() { return SONGS[index]; }
+function lines() { return (song() && song().lines) || []; }
+function focusName() {
+  return (song() && song().focus) || "";
+}
+function studyLines() {
+  const point = focusName();
+  if (point.indexOf("已经") === 0) {
+    return lines().filter(function (line) { return /they say/i.test(line.text || ""); });
+  }
+  if (point.indexOf("以后") === 0 || point.indexOf("If 后面") === 0) {
+    return lines().filter(function (line) { return /^\s*(and\s+)?if\b/i.test(line.text || ""); });
+  }
+  return lines();
+}
+function tipText() {
+  if (focusName().indexOf("已经") === 0) {
+    return "别人已经这么说了。嘴里却用 They say，不用 They said。听起来这消息现在还在起作用。";
+  }
+  return "两件事都是以后才发生的。If 后面那件，却当成现在来说，不加 will。will 只放在后面那句，说你到时会怎么做。";
+}
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"]/g, function (ch) {
+    if (ch === "&") return "&" + "amp;";
+    if (ch === "<") return "&" + "lt;";
+    if (ch === ">") return "&" + "gt;";
+    return "&" + "quot;";
+  });
+}
+function activeLine() {
+  const t = audio.currentTime || 0;
+  let hit = 0;
+  for (let i = 0; i < lines().length; i++) if (t >= lines()[i].startTime) hit = i;
+  return hit;
+}
+function paintTabs() {
+  document.querySelectorAll(".nav button").forEach(function (button) {
+    button.classList.toggle("on", button.dataset.mode === mode);
+  });
+}
+function renderListen() {
+  const source = subtitles === "grammar" ? studyLines() : lines();
+  const html = source.map(function (line) {
+    const extra = subtitles === "en" ? "" : escapeHtml(line.translation || "");
+    return '<div class="line" data-t="' + line.startTime + '"><b>' + escapeHtml(line.fullText || line.text) +
+      '</b><small>' + extra + '</small></div>';
+  }).join("");
+  stage.innerHTML = '<div class="row">' +
+    '<button class="chip" data-sub="both" type="button">中英</button>' +
+    '<button class="chip" data-sub="en" type="button">只看英文</button>' +
+    '<button class="chip" data-sub="grammar" type="button">只看要学的</button>' +
+    '<button class="chip" id="open-grammar" type="button">听这句怎么唱</button></div>' + html;
+  shown = -1;
+  highlight();
+}
+function renderGrammar() {
+  const pool = studyLines();
+  const cards = pool.map(function (line) {
+    return '<div class="card"><b>' + escapeHtml(line.fullText || line.text) +
+      '</b><p>' + escapeHtml(line.translation || "") + '</p><button class="chip" data-t="' +
+      line.startTime + '" type="button">听这句</button></div>';
+  }).join("");
+  stage.innerHTML = '<div class="card"><b>' + escapeHtml(focusName()) + '</b><p>' + tipText() + '</p></div>' +
+    (cards || '<div class="card">这首歌里还没有对上这个点的句子。</div>') +
+    '<button class="chip" id="use-pattern" type="button">我也用这句说说自己的事</button>';
+}
+function quizItems() {
+  const items = studyLines().filter(function (line) { return line.cloze && line.cloze.blankWord; });
+  const extra = song() && song().example;
+  if (extra && extra.cloze) items.push(extra);
+  return items;
+}
+function renderQuiz() {
+  const items = quizItems();
+  if (!items.length) { stage.innerHTML = '<div class="card">这首歌还没有填空题。</div>'; return; }
+  if (quizIndex >= items.length) {
+    stage.innerHTML = '<div class="card"><b>做完了</b><p>对了 ' + quizScore + ' / ' + items.length +
+      '</p><button class="chip" id="quiz-restart" type="button">再练一次</button></div>';
+    return;
+  }
+  const line = items[quizIndex];
+  const cloze = line.cloze;
+  const options = (cloze.options || []).map(function (opt) {
+    let cls = "opt";
+    if (quizLocked && opt.toLowerCase() === String(cloze.blankWord).toLowerCase()) cls += " good";
+    else if (quizLocked && opt === quizAnswer) cls += " bad";
+    return '<button class="' + cls + '" data-opt="' + escapeHtml(opt) + '" type="button">' + escapeHtml(opt) + '</button>';
+  }).join("");
+  const label = line.kind === "made" ? "换一句你自己的" : "歌里这句";
+  const hear = line.startTime == null ? "" : '<button class="chip" data-t="' + line.startTime + '" type="button">听这句</button>';
+  stage.innerHTML = '<div class="card"><p>第 ' + (quizIndex + 1) + ' / ' + items.length + ' 句</p><p>' +
+    escapeHtml(label) + '</p><b>' + escapeHtml(cloze.sentenceWithBlank || line.text) +
+    '</b><p>' + tipText() + '</p>' + hear +
+    options + (quizLocked ? '<button class="chip" id="quiz-next" type="button">下一题</button>' : '') + '</div>';
+}
+function renderBuilder() {
+  const all = studyLines();
+  if (grammarIndex >= all.length) grammarIndex = 0;
+  const line = all[grammarIndex] || {};
+  const list = all.map(function (item, i) {
+    return '<button class="line" data-pick="' + i + '" type="button"><b>' + escapeHtml(item.fullText || item.text) +
+      '</b><small>' + escapeHtml(item.translation || "") + '</small></button>';
+  }).join("");
+  stage.innerHTML = '<div class="card"><b>换成你自己的事</b><p>' + tipText() + '</p></div>' +
+    list +
+    '<div class="card"><b>就改这一句</b><p>' + escapeHtml(line.fullText || line.text || "") + '</p><textarea id="sentence" rows="3" placeholder="写成完整的一句。If 后面当现在说，后面接上你会怎么做。"></textarea>' +
+    '<button class="chip" id="check-sentence" type="button">检查</button><div id="sentence-result"></div></div>';
+}
+function renderMv() {
+  const current = song() || {};
+  const line = lines()[activeLine()] || {};
+  if (!current.videoUrl) {
+    stage.innerHTML = '<div class="card">这首还没有画面。歌和歌词还能照常听。</div>';
+    return;
+  }
+  stage.innerHTML = '<div class="mv"><video id="mv" src="' + escapeHtml(current.videoUrl) +
+    '" poster="' + escapeHtml(current.videoPoster || "") + '" muted playsinline></video><div class="mvcap"><b>' +
+    escapeHtml(line.text || "") + '</b><p>' + escapeHtml(line.translation || "") + '</p></div></div>';
+  const clip = document.getElementById("mv");
+  if (!clip) return;
+  clip.onerror = function () {
+    stage.innerHTML = '<div class="card">画面没加载出来。先听歌、看歌词就行。</div>';
+  };
+  try { clip.currentTime = audio.currentTime || 0; } catch (error) {}
+  if (!audio.paused) clip.play();
+}
+function render() {
+  paintTabs();
+  if (mode === "grammar") renderGrammar();
+  else if (mode === "karaoke") renderQuiz();
+  else if (mode === "builder") renderBuilder();
+  else if (mode === "mv") renderMv();
+  else renderListen();
+}
+function highlight() {
+  if (mode !== "listen" || subtitles === "grammar") return;
+  const lineNo = activeLine();
+  if (lineNo === shown) return;
+  shown = lineNo;
+  stage.querySelectorAll(".line").forEach(function (node, i) { node.classList.toggle("on", i === lineNo); });
+  const active = stage.querySelector(".line.on");
+  if (active) active.scrollIntoView({ block: "center" });
+}
+function loadSong(next, autoplay) {
+  index = next;
+  const current = song();
+  if (!current) return;
+  document.getElementById("title").textContent = current.title || "歌曲";
+  document.getElementById("songs").value = String(index);
+  audio.src = current.audioUrl;
+  audio.playbackRate = rate;
+  grammarIndex = 0;
+  quizIndex = 0;
+  quizAnswer = "";
+  quizLocked = false;
+  quizScore = 0;
+  loopLine = null;
+  document.getElementById("loop").classList.remove("on");
+  render();
+  if (autoplay) audio.play();
+}
+function jump(delta) {
+  const i = Math.max(0, Math.min(lines().length - 1, activeLine() + delta));
+  const line = lines()[i];
+  if (!line) return;
+  audio.currentTime = line.startTime;
+  audio.play();
+}
+function localNote(text) {
+  const lower = text.toLowerCase();
+  const ifSong = focusName().indexOf("以后") === 0 || focusName().indexOf("If") === 0;
+  let note = "可以。这是本地判断。";
+  if (text.split(/\s+/).length < 3) note = "再写完整一点。";
+  else if (ifSong) {
+    const head = lower.split(/i'll|i will/)[0];
+    if (lower.indexOf("if") < 0) note = "还是用 If 开头，后面接上你会怎么做。";
+    else if (head.indexOf("will") >= 0) note = "If 后面别加 will。will 放在后面那句。";
+    else if (lower.indexOf("will") < 0 && lower.indexOf("i'll") < 0) note = "后面那句也要写上，用 will 说你会怎么做。";
+  } else if (focusName().indexOf("已经") === 0 && (lower.indexOf("they say") < 0 || lower.indexOf("they said") >= 0)) {
+    note = "别人已经说过了。嘴里用 They say，别写成 They said。";
+  }
+  return note;
+}
+function askDeepSeek(text) {
+  if (!DEEPSEEK_KEY || !DEEPSEEK_URL) return Promise.reject(new Error("no key"));
+  return fetch(DEEPSEEK_URL, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: "Bearer " + DEEPSEEK_KEY },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: "你在帮中国大学生看一句英文。只用口语，不要用语法术语。以后的事：If 后面当现在说，不加 will，will 放在后面那句，必须写完整句。别人已经说过的事：用 They say，不要 They said。用两三句中文说清楚。" },
+        { role: "user", content: "这首歌要学的：" + focusName() + "\n学生写的：" + text }
+      ]
+    })
+  }).then(function (res) {
+    if (!res.ok) throw new Error("bad");
+    return res.json();
+  }).then(function (data) {
+    const message = data && data.choices && data.choices[0] && data.choices[0].message;
+    const reply = message && message.content ? String(message.content).trim() : "";
+    if (!reply) throw new Error("empty");
+    return reply;
+  });
+}
+function checkSentence() {
+  const input = document.getElementById("sentence");
+  const result = document.getElementById("sentence-result");
+  if (!input || !result) return;
+  const text = input.value.trim();
+  const local = localNote(text);
+  if (!DEEPSEEK_KEY) {
+    result.innerHTML = "<p>" + escapeHtml(local) + "</p>";
+    return;
+  }
+  result.innerHTML = "<p>在问 DeepSeek…</p>";
+  askDeepSeek(text).then(function (reply) {
+    result.innerHTML = "<p>" + escapeHtml(reply) + "</p>";
+  }).catch(function () {
+    result.innerHTML = "<p>" + escapeHtml(local) + "</p><p>没连上 DeepSeek，这是本地判断。</p>";
+  });
+}
+document.getElementById("songs").innerHTML = SONGS.map(function (item, i) {
+  return '<option value="' + i + '">' + escapeHtml(item.title || "未命名") + '</option>';
+}).join("");
+document.getElementById("songs").onchange = function (event) { loadSong(Number(event.target.value), true); };
+document.getElementById("play").onclick = function () {
+  if (!song()) return;
+  if (audio.paused) audio.play(); else audio.pause();
+};
+document.getElementById("prev").onclick = function () { jump(-1); };
+document.getElementById("next").onclick = function () { jump(1); };
+document.getElementById("loop").onclick = function (event) {
+  if (loopLine === null) {
+    loopLine = activeLine();
+    event.target.classList.add("on");
+  } else {
+    loopLine = null;
+    event.target.classList.remove("on");
+  }
+};
+document.getElementById("seek").oninput = function (event) { audio.currentTime = Number(event.target.value); };
+document.getElementById("vol").oninput = function (event) { audio.volume = Number(event.target.value); };
+document.getElementById("speeds").innerHTML = [0.75, 1, 1.25].map(function (value) {
+  return '<button class="chip' + (value === 1 ? ' on' : '') + '" data-rate="' + value + '" type="button">' + value + 'x</button>';
+}).join("");
+document.getElementById("speeds").onclick = function (event) {
+  const button = event.target.closest("[data-rate]");
+  if (!button) return;
+  rate = Number(button.dataset.rate);
+  audio.playbackRate = rate;
+  document.querySelectorAll("#speeds button").forEach(function (item) { item.classList.toggle("on", item === button); });
+};
+document.querySelector(".nav").onclick = function (event) {
+  const button = event.target.closest("[data-mode]");
+  if (!button) return;
+  mode = button.dataset.mode;
+  shown = -1;
+  render();
+};
+stage.onclick = function (event) {
+  const sub = event.target.closest("[data-sub]");
+  if (sub) { subtitles = sub.dataset.sub; renderListen(); return; }
+  if (event.target.id === "open-grammar" || event.target.id === "use-pattern") {
+    if (event.target.id === "open-grammar") {
+      const found = studyLines().indexOf(lines()[activeLine()]);
+      grammarIndex = found >= 0 ? found : 0;
+      mode = "grammar";
+    } else {
+      mode = "builder";
+    }
+    render();
+    return;
+  }
+  const picked = event.target.closest("[data-pick]");
+  if (picked) { grammarIndex = Number(picked.dataset.pick); renderBuilder(); return; }
+  const grammarButton = event.target.closest("[data-g]");
+  if (grammarButton) { grammarIndex = Number(grammarButton.dataset.g); renderGrammar(); return; }
+  const pattern = event.target.closest("[data-pattern]");
+  if (pattern) {
+    const item = ((song() && song().keyTakeawayPatterns) || [])[Number(pattern.dataset.pattern)];
+    const box = document.getElementById("sentence");
+    if (item && box && !box.value) box.value = item.dailyExample || "";
+    return;
+  }
+  const line = event.target.closest("[data-t]");
+  if (line && !event.target.closest("[data-opt]")) {
+    audio.currentTime = Number(line.dataset.t);
+    audio.play();
+    return;
+  }
+  const option = event.target.closest("[data-opt]");
+  if (option && !quizLocked) {
+    quizAnswer = option.dataset.opt;
+    quizLocked = true;
+    const item = quizItems()[quizIndex];
+    if (item && String(item.cloze.blankWord).toLowerCase() === String(quizAnswer).toLowerCase()) quizScore += 1;
+    renderQuiz();
+    return;
+  }
+  if (event.target.id === "quiz-next") { quizIndex += 1; quizAnswer = ""; quizLocked = false; renderQuiz(); return; }
+  if (event.target.id === "quiz-restart") { quizIndex = 0; quizAnswer = ""; quizLocked = false; quizScore = 0; renderQuiz(); return; }
+  if (event.target.id === "check-sentence") checkSentence();
+};
+audio.ontimeupdate = function () {
+  const seek = document.getElementById("seek");
+  seek.max = String(audio.duration || (song() && song().duration) || 0);
+  seek.value = String(audio.currentTime || 0);
+  document.getElementById("play").textContent = audio.paused ? "▶" : "❚❚";
+  if (loopLine !== null) {
+    const line = lines()[loopLine];
+    if (line && audio.currentTime > line.endTime + 0.05) audio.currentTime = line.startTime;
+  }
+  highlight();
+  if (mode === "mv") {
+    const clip = document.getElementById("mv");
+    const cap = document.querySelector(".mvcap");
+    const line = lines()[activeLine()] || {};
+    if (cap) cap.innerHTML = "<b>" + escapeHtml(line.text || "") + "</b><p>" + escapeHtml(line.translation || "") + "</p>";
+    if (clip) {
+      try {
+        if (Math.abs(clip.currentTime - audio.currentTime) > 0.45) clip.currentTime = audio.currentTime;
+      } catch (error) {}
+      if (audio.paused) clip.pause();
+      else clip.play();
+    }
+  }
+};
+audio.onplay = audio.onpause = audio.ontimeupdate;
+if (song()) loadSong(0, false);
+</script>
+</body>
+</html>
