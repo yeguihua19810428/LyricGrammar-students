@@ -12,7 +12,7 @@
   header strong { font-size: 16px; }
   .point { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: #b45309; }
   select { width: 100%; margin-top: 8px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; font: inherit; }
-  main { padding: 12px 12px 250px; }
+  main { padding: 12px 12px 210px; }
   .line { padding: 12px 4px; border-bottom: 1px solid #f1f5f9; }
   .line b { display: block; font-size: 18px; line-height: 1.45; }
   .line small { color: #64748b; }
@@ -29,19 +29,18 @@
   .opt.good { border-color: #10b981; background: #ecfdf5; }
   .opt.bad { border-color: #f43f5e; background: #fff1f2; }
   textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; }
-  .dock { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid #e2e8f0; padding-bottom: env(safe-area-inset-bottom); }
-  .transport { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px 0; }
-  .transport input { flex: 1 1 140px; min-width: 120px; accent-color: #f59e0b; }
-  .volrow { display: flex; align-items: center; gap: 8px; padding: 8px 12px 0; font-size: 13px; color: #64748b; }
-  .volrow input { flex: 1; accent-color: #f59e0b; height: 28px; }
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: #fff; border-top: 1px solid #e2e8f0; padding-bottom: env(safe-area-inset-bottom); }
+  .transport { display: flex; align-items: center; gap: 6px; padding: 8px 10px 4px; }
+  .transport .chip { padding: 8px 10px; min-height: 36px; font-size: 13px; }
+  .slider { display: flex; align-items: center; gap: 8px; padding: 0 12px 6px; font-size: 12px; color: #64748b; }
+  .slider input { flex: 1; width: 100%; accent-color: #f59e0b; height: 24px; }
   .nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .nav button.on { color: #b45309; font-weight: 700; }
-  .mv { position: relative; max-width: 420px; margin: 0 auto; height: 36vh; background: #111827; border-radius: 18px; overflow: hidden; }
+  .mv { max-width: 420px; margin: 0 auto; height: 42vh; background: #111827; border-radius: 18px; overflow: hidden; }
   .mv video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .mvline { padding: 8px 12px 0; }
-  .mvline[hidden] { display: none; }
-  .mvline b { display: block; font-size: 18px; line-height: 1.35; color: #0f172a; }
-  .mvline p { margin: 4px 0 0; font-size: 14px; line-height: 1.4; color: #64748b; }
+  .mvline { margin-top: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; }
+  .mvline b { display: block; font-size: 18px; line-height: 1.4; color: #0f172a; }
+  .mvline p { margin: 6px 0 0; font-size: 15px; line-height: 1.45; color: #64748b; }
 </style>
 </head>
 <body>
@@ -52,15 +51,14 @@
 </header>
 <main id="stage"><div class="line"><b>If you ever find yourself stuck in the middle of the sea</b><small>要是有一天你被困在海上</small></div><div class="line"><b>I'll sail the world to find you</b><small>我会航行到世界尽头去找你</small></div><div class="line"><b>If you ever find yourself lost in the dark and you can't see</b><small>要是有一天你在黑暗里什么也看不见</small></div><div class="line"><b>I'll be the light to guide you</b><small>我会变成光照着你</small></div><div class="line"><b>Find out what we're made of</b><small>看看我们到底是什么样的人</small></div><div class="line"><b>When we are called to help our friends in need</b><small>当朋友需要帮忙的时候</small></div><div class="line"><b>You can count on me</b><small>你可以靠着我</small></div><div class="line"><b>Like one, two, three, I'll be there</b><small>像一二三，我就在</small></div><div class="line"><b>And I know when I need it</b><small>我也知道，当我需要的时候</small></div><div class="line"><b>I can count on you</b><small>我可以靠着你</small></div><div class="line"><b>Like four, three, two, and you'll be there</b><small>像四三二，你也会在</small></div><div class="line"><b>'Cause that's what friends are supposed to do, ah yeah</b><small>因为朋友就该这样</small></div><div class="line"><b>Ooh, ooh, yeah, yeah</b><small>喔，耶</small></div><div class="line"><b>If you're tossing and you're turning and you just can't fall asleep</b><small>要是你翻来覆去睡不着</small></div><div class="line"><b>I'll sing a song beside you</b><small>我就在你身边唱歌</small></div><div class="line"><b>And if you ever forget how much you really mean to me</b><small>要是你忘了你对我有多重要</small></div><div class="line"><b>Every day I will remind you</b><small>我每天都会提醒你</small></div><div class="line"><b>Oh</b><small>哦</small></div><div class="line"><b>We find out what we're made of</b><small>我们会看清自己是什么样的人</small></div><div class="line"><b>When we are called to help our friends in need</b><small>当朋友需要帮忙的时候</small></div><div class="line"><b>You can count on me</b><small>你可以靠着我</small></div><div class="line"><b>Like one, two, three, I'll be there</b><small>像一二三，我就在</small></div><div class="line"><b>And I know when I need it</b><small>我也知道，当我需要的时候</small></div><div class="line"><b>I can count on you</b><small>我可以靠着你</small></div><div class="line"><b>Like four, three, two, and you'll be there</b><small>像四三二，你也会在</small></div><div class="line"><b>'Cause that's what friends are supposed to do, ah yeah</b><small>因为朋友就该这样</small></div><div class="line"><b>Ooh, ooh, yeah, yeah</b><small>喔，耶</small></div><div class="line"><b>You'll always have my shoulder when you cry</b><small>你哭的时候，肩膀一直在</small></div><div class="line"><b>I'll never let go, never say goodbye</b><small>我不会松手，也不会说再见</small></div><div class="line"><b>You know you can count on me</b><small>你知道你可以靠着我</small></div><div class="line"><b>Like one, two, three, I'll be there</b><small>像一二三，我就在</small></div><div class="line"><b>And I know when I need it</b><small>我也知道，当我需要的时候</small></div><div class="line"><b>I can count on you</b><small>我可以靠着你</small></div><div class="line"><b>Like four, three, two, and you'll be there</b><small>像四三二，你也会在</small></div><div class="line"><b>'Cause that's what friends are supposed to do, ah yeah</b><small>因为朋友就该这样</small></div><div class="line"><b>Ooh, ooh</b><small>喔</small></div><div class="line"><b>You can count on me 'cause I can count on you</b><small>你可以靠着我，因为我也可以靠着你</small></div></main>
 <div class="dock">
-  <div class="mvline" id="mvline" hidden><b></b><p></p></div>
-  <div class="volrow"><span>音量</span><input id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="音量" /></div>
   <div class="transport">
     <button class="play" id="play" type="button">▶</button>
     <button class="chip" id="prev" type="button">上一句</button>
     <button class="chip" id="next" type="button">下一句</button>
     <button class="chip" id="loop" type="button">循环这句</button>
-    <input id="seek" type="range" min="0" max="0" step="0.1" value="0" aria-label="进度" />
   </div>
+  <div class="slider"><span>进度</span><input id="seek" type="range" min="0" max="0" step="0.1" value="0" aria-label="进度" /></div>
+  <div class="slider"><span>音量</span><input id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="音量" /></div>
   <div class="row" id="speeds" style="padding:8px 10px 0"></div>
   <nav class="nav">
     <button type="button" data-mode="mv">欣赏</button>
@@ -220,12 +218,9 @@ function renderMv() {
     return;
   }
   stage.innerHTML = '<div class="mv"><video id="mv" src="' + escapeHtml(current.videoUrl) +
-    '" poster="' + escapeHtml(current.videoPoster || "") + '" muted playsinline></video></div>';
-  const cap = document.getElementById("mvline");
-  if (cap) {
-    cap.hidden = false;
-    cap.innerHTML = "<b>" + escapeHtml(line.text || "按播放") + "</b><p>" + escapeHtml(line.translation || "") + "</p>";
-  }
+    '" poster="' + escapeHtml(current.videoPoster || "") + '" muted playsinline></video></div>' +
+    '<div class="mvline" id="mvline"><b>' + escapeHtml(line.text || "按播放") + '</b><p>' +
+    escapeHtml(line.translation || "") + '</p></div>';
   const clip = document.getElementById("mv");
   if (!clip) return;
   clip.onerror = function () {
@@ -236,8 +231,6 @@ function renderMv() {
 }
 function render() {
   paintTabs();
-  const cap = document.getElementById("mvline");
-  if (cap && mode !== "mv") cap.hidden = true;
   if (mode === "grammar") renderGrammar();
   else if (mode === "karaoke") renderQuiz();
   else if (mode === "builder") renderBuilder();
