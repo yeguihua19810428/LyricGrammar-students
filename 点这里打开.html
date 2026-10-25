@@ -12,7 +12,11 @@
   header strong { font-size: 16px; }
   .point { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: #b45309; }
   select { width: 100%; margin-top: 8px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; font: inherit; }
-  main { padding: 12px 12px 210px; }
+  main { padding: 12px 12px 230px; }
+  body.mode-mv { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  body.mode-mv header { flex: none; }
+  body.mode-mv main { flex: 1; min-height: 0; padding: 0; overflow: hidden; }
+  body.mode-mv .dock { position: static; flex: none; }
   .line { padding: 12px 4px; border-bottom: 1px solid #f1f5f9; }
   .line b { display: block; font-size: 18px; line-height: 1.45; }
   .line small { color: #64748b; }
@@ -36,14 +40,12 @@
   .slider input { flex: 1; width: 100%; accent-color: #f59e0b; height: 24px; }
   .nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .nav button.on { color: #b45309; font-weight: 700; }
-  .mv { max-width: 420px; margin: 0 auto; height: 42vh; background: #111827; border-radius: 18px; overflow: hidden; }
-  .mv video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .mvline { margin-top: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; }
-  .mvline b { display: block; font-size: 18px; line-height: 1.4; color: #0f172a; }
-  .mvline p { margin: 6px 0 0; font-size: 15px; line-height: 1.45; color: #64748b; }
+  .mv { height: 100%; width: 100%; background: #000; overflow: hidden; position: relative; }
+  .mv video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mv canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
 </style>
 </head>
-<body>
+<body class="mode-listen">
 <header>
   <strong id="title">Count On Me</strong>
   <p id="point" class="point">以后的事，If 后面当现在说</p>
@@ -210,27 +212,100 @@ function renderBuilder() {
     keyField +
     '<button class="chip" id="check-sentence" type="button">看一看</button><div id="sentence-result"></div></div>';
 }
+function wrapLine(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = String(text || "").split(" ");
+  let line = "";
+  const rows = [];
+  words.forEach(function (word) {
+    const next = line ? line + " " + word : word;
+    if (ctx.measureText(next).width > maxWidth && line) {
+      rows.push(line);
+      line = word;
+    } else line = next;
+  });
+  if (line) rows.push(line);
+  rows.forEach(function (row, i) { ctx.fillText(row, x, y + i * lineHeight); });
+  return rows.length * lineHeight;
+}
+let mvFrame = 0;
+let lyricScroll = 0;
+function stopMv() {
+  if (mvFrame) cancelAnimationFrame(mvFrame);
+  mvFrame = 0;
+}
+function drawMv() {
+  if (mode !== "mv") return;
+  const canvas = document.getElementById("mvcanvas");
+  const clip = document.getElementById("mv");
+  if (!canvas || !clip) return;
+  const ctx = canvas.getContext("2d");
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.max(2, Math.round(rect.width * dpr));
+  const h = Math.max(2, Math.round(rect.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  ctx.clearRect(0, 0, w, h);
+  const shade = ctx.createLinearGradient(0, h * 0.42, 0, h);
+  shade.addColorStop(0, "rgba(0,0,0,0)");
+  shade.addColorStop(1, "rgba(0,0,0,0.78)");
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, h * 0.42, w, h * 0.58);
+  const rows = [];
+  lines().forEach(function (line, i) {
+    if (String(line.text || "").trim()) rows.push({ i: i, text: line.text, zh: line.translation || "" });
+  });
+  let target = 0;
+  const now = activeLine();
+  rows.forEach(function (row, n) { if (row.i <= now) target = n; });
+  lyricScroll += (target - lyricScroll) * 0.14;
+  const gap = Math.round(h * 0.12);
+  ctx.textAlign = "center";
+  ctx.shadowColor = "rgba(0,0,0,0.8)";
+  ctx.shadowBlur = 8;
+  rows.forEach(function (row, n) {
+    const y = h * 0.62 + (n - lyricScroll) * gap;
+    if (y < h * 0.4 || y > h - 10) return;
+    const near = Math.abs(n - lyricScroll) < 0.6;
+    ctx.fillStyle = near ? "#ffffff" : "rgba(255,255,255,0.5)";
+    ctx.font = (near ? "700 " : "500 ") + Math.round(near ? h * 0.045 : h * 0.032) + "px sans-serif";
+    const used = wrapLine(ctx, row.text, w / 2, y, w * 0.86, Math.round(h * 0.05));
+    if (near && row.zh) {
+      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      ctx.font = "500 " + Math.round(h * 0.032) + "px sans-serif";
+      ctx.fillText(row.zh, w / 2, y + used + Math.round(h * 0.01));
+    }
+  });
+  ctx.shadowBlur = 0;
+  mvFrame = requestAnimationFrame(drawMv);
+}
 function renderMv() {
   const current = song() || {};
-  const line = lines()[activeLine()] || {};
   if (!current.videoUrl) {
+    stopMv();
     stage.innerHTML = '<div class="card">这首还没有画面。歌和歌词还能照常听。</div>';
     return;
   }
-  stage.innerHTML = '<div class="mv"><video id="mv" src="' + escapeHtml(current.videoUrl) +
-    '" poster="' + escapeHtml(current.videoPoster || "") + '" muted playsinline></video></div>' +
-    '<div class="mvline" id="mvline"><b>' + escapeHtml(line.text || "按播放") + '</b><p>' +
-    escapeHtml(line.translation || "") + '</p></div>';
+  stage.innerHTML = '<div class="mv"><canvas id="mvcanvas"></canvas><video id="mv" src="' + escapeHtml(current.videoUrl) +
+    '" muted playsinline></video></div>';
   const clip = document.getElementById("mv");
   if (!clip) return;
   clip.onerror = function () {
+    stopMv();
     stage.innerHTML = '<div class="card">画面没加载出来。先听歌、看歌词就行。</div>';
   };
   try { clip.currentTime = audio.currentTime || 0; } catch (error) {}
   if (!audio.paused) clip.play();
+  lyricScroll = 0;
+  stopMv();
+  drawMv();
 }
 function render() {
   paintTabs();
+  document.body.className = "mode-" + mode;
+  if (mode !== "mv") stopMv();
   if (mode === "grammar") renderGrammar();
   else if (mode === "karaoke") renderQuiz();
   else if (mode === "builder") renderBuilder();
