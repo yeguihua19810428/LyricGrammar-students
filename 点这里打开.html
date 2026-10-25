@@ -139,6 +139,33 @@ function activeLine() {
   }
   return hit;
 }
+function studySentence(line) {
+  const at = lines().indexOf(line);
+  const next = lines()[at + 1];
+  const ifOnly = /^\s*(and\s+)?if\b/i.test(line.text || "") && !/\b(i'll|will)\b/i.test(line.text || "");
+  const follow = next && /\b(i'll|will)\b/i.test(next.text || "");
+  if (ifOnly && follow) {
+    return {
+      translation: [line.translation, next.translation].filter(Boolean).join("，"),
+      parts: [
+        { i: at, text: line.text },
+        { i: at + 1, text: next.text }
+      ]
+    };
+  }
+  return {
+    translation: line.translation || "",
+    parts: [{ i: at, text: line.fullText || line.text }]
+  };
+}
+function sentenceHtml(line) {
+  const spoken = studySentence(line);
+  const html = spoken.parts.map(function (part, index) {
+    const comma = index ? '<span class="gap">, </span>' : "";
+    return comma + '<span class="part" data-i="' + part.i + '">' + wordHtml(part.text) + "</span>";
+  }).join("");
+  return { html: html, translation: spoken.translation };
+}
 function wordHtml(text) {
   return String(text || "").split(/(\s+)/).map(function (part) {
     if (!part || !part.trim()) return escapeHtml(part);
@@ -169,9 +196,10 @@ function renderListen() {
 function renderGrammar() {
   const pool = studyLines();
   const cards = pool.map(function (line) {
-    return '<div class="card" data-i="' + lines().indexOf(line) + '"><b>' + wordHtml(line.text) +
-      '</b><p>' + escapeHtml(line.translation || "") + '</p><button class="chip" data-t="' +
-      line.startTime + '" type="button">听这句</button></div>';
+    const spoken = sentenceHtml(line);
+    return '<div class="card"><b>' + spoken.html +
+      '</b><p>' + escapeHtml(spoken.translation) + '</p><button class="chip" data-hear="' +
+      lines().indexOf(line) + '" type="button">听这句</button></div>';
   }).join("");
   stage.innerHTML = '<div class="card"><b>' + escapeHtml(focusName()) + '</b><p>' + tipText() + '</p></div>' +
     (cards || '<div class="card">这首歌里还没有对上这个点的句子。</div>') +
@@ -199,12 +227,17 @@ function renderQuiz() {
     else if (quizLocked && opt === quizAnswer) cls += " bad";
     return '<button class="' + cls + '" data-opt="' + escapeHtml(opt) + '" type="button">' + escapeHtml(opt) + '</button>';
   }).join("");
-  const label = line.kind === "made" ? "换一句你自己的" : "歌里这句";
-  const hear = line.startTime == null ? "" : '<button class="chip" data-t="' + line.startTime + '" type="button">听这句</button>';
+  const spoken = line.kind === "made" ? null : sentenceHtml(line);
+  const sentence = line.kind === "made"
+    ? (cloze.sentenceWithBlank || line.text)
+    : (cloze.sentenceWithBlank || line.fullText || line.text);
+  const hear = line.startTime == null ? "" : '<button class="chip" data-hear="' + lines().indexOf(line) + '" type="button">听这句</button>';
   stage.innerHTML = '<div class="card"><p>第 ' + (quizIndex + 1) + ' / ' + items.length + ' 句</p><p>' +
-    escapeHtml(label) + '</p><b>' + escapeHtml(cloze.sentenceWithBlank || line.text) +
-    '</b><p>' + tipText() + '</p>' + hear +
-    options + (quizLocked ? '<button class="chip" id="quiz-next" type="button">下一题</button>' : '') + '</div>';
+    (line.kind === "made" ? "换一句你自己的" : "完整的一句") + '</p><b>' + escapeHtml(sentence) +
+    '</b><p>' + escapeHtml(spoken ? spoken.translation : "") + '</p>' + hear +
+    options +
+    '<button class="chip" id="quiz-prev" type="button">上一题</button>' +
+    '<button class="chip" id="quiz-next" type="button">下一题</button></div>';
 }
 function renderBuilder() {
   const coachBox = document.getElementById("coach");
@@ -285,6 +318,26 @@ function loadSong(next, autoplay) {
   render();
   if (autoplay) audio.play();
 }
+function playAt(index) {
+  const line = lines()[index];
+  if (!line || line.startTime == null) return;
+  if (loopLine !== null && loopLine !== index) {
+    loopLine = null;
+    const loop = document.getElementById("loop");
+    if (loop) loop.classList.remove("on");
+  }
+  const seconds = Number(line.startTime) || 0;
+  const start = function () {
+    const begin = function () { audio.play(); };
+    audio.addEventListener("seeked", begin, { once: true });
+    try { audio.currentTime = seconds; } catch (error) { begin(); }
+  };
+  if (audio.readyState >= 1) start();
+  else {
+    audio.addEventListener("loadedmetadata", start, { once: true });
+    audio.load();
+  }
+}
 function jump(delta) {
   if (mode === "karaoke") {
     const items = quizItems();
@@ -295,10 +348,7 @@ function jump(delta) {
     quizLocked = false;
     renderQuiz();
     const line = items[quizIndex];
-    if (line && line.startTime != null) {
-      audio.currentTime = line.startTime;
-      audio.play();
-    }
+    if (line && line.startTime != null) playAt(lines().indexOf(line));
     return;
   }
   if (mode === "builder" || mode === "grammar") {
@@ -307,17 +357,11 @@ function jump(delta) {
     grammarIndex = Math.max(0, Math.min(pool.length - 1, grammarIndex + delta));
     render();
     const line = pool[grammarIndex];
-    if (line && line.startTime != null) {
-      audio.currentTime = line.startTime;
-      audio.play();
-    }
+    if (line && line.startTime != null) playAt(lines().indexOf(line));
     return;
   }
   const i = Math.max(0, Math.min(lines().length - 1, activeLine() + delta));
-  const line = lines()[i];
-  if (!line) return;
-  audio.currentTime = line.startTime;
-  audio.play();
+  playAt(i);
 }
 function paintSung() {
   document.querySelectorAll(".w i").forEach(function (node) { node.style.width = "0%"; });
@@ -379,7 +423,7 @@ function askDeepSeek(text) {
       body: JSON.stringify({
         model: "deepseek-chat",
         temperature: 0.2,
-        messages: [{ role: "user", content: text + "\n\n" + coach }]
+        messages: [{ role: "user", content: "要分析的英文句子：\n" + text + "\n\n请分析上面这句英文，不要说没看到句子。要求：\n" + coach }]
       })
     }).then(function (res) {
       if (res.status === 401) throw new Error("auth");
@@ -396,7 +440,7 @@ function askDeepSeek(text) {
   return fetch("/api/check-sentence", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ studentSentence: text, instruction: coach })
+    body: JSON.stringify({ studentSentence: text, instruction: coach, labeled: true })
   }).then(function (res) {
     if (!res.ok) throw new Error("bad");
     return res.json();
@@ -414,6 +458,10 @@ function checkSentence() {
   const result = document.getElementById("sentence-result");
   if (!input || !result) return;
   const text = input.value.trim();
+  if (!text) {
+    result.innerHTML = "<p>先把你写的英文句子打进上面那个框，再点看一看。</p>";
+    return;
+  }
   const local = localNote(text);
   if (!currentKey()) {
     result.innerHTML = "<p>还没有 DeepSeek 钥匙。贴上之后，看一看才会问它。</p><p>" + escapeHtml(local) + "</p>";
@@ -490,10 +538,11 @@ stage.onclick = function (event) {
     if (item && box && !box.value) box.value = item.dailyExample || "";
     return;
   }
-  const line = event.target.closest("[data-t]");
-  if (line && !event.target.closest("[data-opt]")) {
-    audio.currentTime = Number(line.dataset.t);
-    audio.play();
+  const hear = event.target.closest("[data-hear]");
+  if (hear) { playAt(Number(hear.dataset.hear)); return; }
+  const line = event.target.closest("[data-i]");
+  if (line && line.classList.contains("line") && !event.target.closest("[data-opt]")) {
+    playAt(Number(line.dataset.i));
     return;
   }
   const option = event.target.closest("[data-opt]");
@@ -502,6 +551,13 @@ stage.onclick = function (event) {
     quizLocked = true;
     const item = quizItems()[quizIndex];
     if (item && String(item.cloze.blankWord).toLowerCase() === String(quizAnswer).toLowerCase()) quizScore += 1;
+    renderQuiz();
+    return;
+  }
+  if (event.target.id === "quiz-prev") {
+    quizIndex = Math.max(0, quizIndex - 1);
+    quizAnswer = "";
+    quizLocked = false;
     renderQuiz();
     return;
   }
