@@ -20,7 +20,10 @@
   .line { padding: 12px 4px; border-bottom: 1px solid #f1f5f9; }
   .line b { display: block; font-size: 18px; line-height: 1.45; }
   .line small { color: #64748b; }
-  .line.on b { color: #b45309; }
+  .line.on { background: #fffbeb; }
+  .w { position: relative; display: inline-block; color: #94a3b8; }
+  .mvline .w { color: rgba(255,255,255,.55); }
+  .w i { position: absolute; left: 0; top: 0; height: 100%; width: 0; overflow: hidden; color: #f59e0b; font-style: normal; white-space: nowrap; pointer-events: none; }
   .row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
   button, textarea { font: inherit; }
   .chip { border: 1px solid #e2e8f0; background: #fff; border-radius: 999px; padding: 10px 14px; min-height: 40px; white-space: nowrap; }
@@ -43,16 +46,7 @@
   .mv { flex: 1; min-height: 0; background: #000; display: flex; align-items: center; justify-content: center; }
   .mv video { max-width: 100%; max-height: 100%; object-fit: contain; }
   .mvline { flex: none; background: #000; color: #fff; text-align: center; padding: 8px 16px 12px; }
-  .mvline b, .line b.kara {
-    display: block;
-    font-size: 16px;
-    line-height: 1.35;
-    background-image: linear-gradient(90deg, #f59e0b var(--sung, 0%), currentColor var(--sung, 0%));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .line b.kara { color: #94a3b8; font-size: 18px; }
+  .mvline b { display: block; font-size: 16px; line-height: 1.35; }
   .mvline p { margin: 4px 0 0; font-size: 14px; line-height: 1.4; color: rgba(255,255,255,.82); }
 </style>
 </head>
@@ -135,9 +129,22 @@ function escapeHtml(value) {
 }
 function activeLine() {
   const t = audio.currentTime || 0;
-  let hit = 0;
-  for (let i = 0; i < lines().length; i++) if (t >= lines()[i].startTime) hit = i;
+  const list = lines();
+  let hit = -1;
+  for (let i = 0; i < list.length; i++) {
+    const start = Number(list[i].startTime);
+    if (!isFinite(start)) continue;
+    if (t + 0.02 < start) break;
+    hit = i;
+  }
   return hit;
+}
+function wordHtml(text) {
+  return String(text || "").split(/(\s+)/).map(function (part) {
+    if (!part || !part.trim()) return escapeHtml(part);
+    const safe = escapeHtml(part);
+    return '<span class="w"><i>' + safe + '</i>' + safe + '</span>';
+  }).join("");
 }
 function paintTabs() {
   document.querySelectorAll(".nav button").forEach(function (button) {
@@ -148,7 +155,7 @@ function renderListen() {
   const source = subtitles === "grammar" ? studyLines() : lines();
   const html = source.map(function (line) {
     const extra = subtitles === "en" ? "" : escapeHtml(line.translation || "");
-    return '<div class="line" data-t="' + line.startTime + '"><b class="kara">' + escapeHtml(line.fullText || line.text) +
+    return '<div class="line" data-i="' + lines().indexOf(line) + '" data-t="' + line.startTime + '"><b>' + wordHtml(line.text) +
       '</b><small>' + extra + '</small></div>';
   }).join("");
   stage.innerHTML = '<div class="row">' +
@@ -162,7 +169,7 @@ function renderListen() {
 function renderGrammar() {
   const pool = studyLines();
   const cards = pool.map(function (line) {
-    return '<div class="card"><b>' + escapeHtml(line.fullText || line.text) +
+    return '<div class="card" data-i="' + lines().indexOf(line) + '"><b>' + wordHtml(line.text) +
       '</b><p>' + escapeHtml(line.translation || "") + '</p><button class="chip" data-t="' +
       line.startTime + '" type="button">听这句</button></div>';
   }).join("");
@@ -231,8 +238,8 @@ function renderMv() {
   }
   const line = lines()[activeLine()] || {};
   stage.innerHTML = '<div class="mv"><video id="mv" src="' + escapeHtml(current.videoUrl) +
-    '" muted playsinline></video></div><div class="mvline" id="mvline"><b class="kara">' +
-    escapeHtml(line.text || "") + '</b><p>' + escapeHtml(line.translation || "") + '</p></div>';
+    '" muted playsinline></video></div><div class="mvline" id="mvline" data-i="' + activeLine() + '"><b>' +
+    wordHtml(line.text || "") + '</b><p>' + escapeHtml(line.translation || "") + '</p></div>';
   const clip = document.getElementById("mv");
   if (!clip) return;
   clip.onerror = function () {
@@ -312,25 +319,30 @@ function jump(delta) {
   audio.currentTime = line.startTime;
   audio.play();
 }
-function sungRatio(line, at) {
-  if (!line) return 0;
+function paintSung() {
+  document.querySelectorAll(".w i").forEach(function (node) { node.style.width = "0%"; });
+  const at = activeLine();
+  const line = at < 0 ? null : lines()[at];
+  if (!line) return;
+  const root = mode === "mv" ? document.getElementById("mvline") : stage.querySelector('[data-i="' + at + '"]');
+  if (!root || (mode !== "mv" && mode !== "listen" && mode !== "grammar")) return;
+  const words = root.querySelectorAll(".w");
+  if (!words.length) return;
   const start = Number(line.startTime) || 0;
   let end = Number(line.endTime);
   if (!end || end <= start) {
     const next = lines()[at + 1];
-    end = next && next.startTime > start ? Number(next.startTime) : start + 4;
+    end = next && Number(next.startTime) > start ? Number(next.startTime) : start + 4;
   }
-  if ((audio.currentTime || 0) <= start) return 0;
-  return Math.max(0, Math.min(1, (audio.currentTime - start) / (end - start)));
-}
-function paintSung() {
-  const at = activeLine();
-  const ratio = Math.round(sungRatio(lines()[at], at) * 100) + "%";
-  document.querySelectorAll(".kara").forEach(function (node) { node.style.setProperty("--sung", "0%"); });
-  let target = null;
-  if (mode === "mv") target = document.querySelector("#mvline b");
-  else if (mode === "listen") target = stage.querySelectorAll(".line")[at] && stage.querySelectorAll(".line")[at].querySelector("b");
-  if (target) target.style.setProperty("--sung", ratio);
+  const t = audio.currentTime || 0;
+  const ratio = t >= end ? 1 : Math.max(0, (t - start) / (end - start));
+  const pos = ratio * words.length;
+  words.forEach(function (word, i) {
+    const fill = word.querySelector("i");
+    if (!fill) return;
+    const part = i + 1 <= pos ? 1 : i < pos ? pos - i : 0;
+    fill.style.width = Math.round(part * 100) + "%";
+  });
 }
 function localNote(text) {
   const lower = text.toLowerCase();
@@ -513,7 +525,8 @@ audio.ontimeupdate = function () {
     const line = lines()[activeLine()] || {};
     if (cap && cap.dataset.n !== String(activeLine())) {
       cap.dataset.n = String(activeLine());
-      cap.innerHTML = '<b class="kara">' + escapeHtml(line.text || "") + "</b><p>" + escapeHtml(line.translation || "") + "</p>";
+      cap.dataset.i = String(activeLine());
+      cap.innerHTML = "<b>" + wordHtml(line.text || "") + "</b><p>" + escapeHtml(line.translation || "") + "</p>";
     }
     if (clip) {
       try {
