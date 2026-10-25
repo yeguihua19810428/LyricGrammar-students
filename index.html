@@ -181,6 +181,11 @@ function paintTabs() {
 function renderListen() {
   const source = subtitles === "grammar" ? studyLines() : lines();
   const html = source.map(function (line) {
+    if (subtitles === "grammar") {
+      const spoken = sentenceHtml(line);
+      return '<div class="line" data-hear="' + lines().indexOf(line) + '"><b>' + spoken.html +
+        '</b><small>' + escapeHtml(spoken.translation) + '</small></div>';
+    }
     const extra = subtitles === "en" ? "" : escapeHtml(line.translation || "");
     return '<div class="line" data-i="' + lines().indexOf(line) + '" data-t="' + line.startTime + '"><b>' + wordHtml(line.text) +
       '</b><small>' + extra + '</small></div>';
