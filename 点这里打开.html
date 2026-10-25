@@ -82,7 +82,9 @@ const MEDIA = {"audio/03_Bruno_Mars_-_Count_On_Me.mp3":"SUQzAwAAABUCAFdPQUYAAAAA
 const DEEPSEEK_KEY = atob("c2stYzA3MGE3NGEyZGEyNDU5Njg3YTlhYWEzZjNhZTY1ZjE=");
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
 const COACH_PROMPT = "根据一般现在时特殊用法其中一种‘在从句中，用一般现在时的语法形式，表达将来发生的事’，分析以上句子语法对不对";
-let coachDraft = COACH_PROMPT;
+let coachDraft = "";
+let coachSong = -1;
+const coachEdits = {};
 let sentenceDraft = "";
 let savedKey = "";
 try { savedKey = localStorage.getItem("deepseek-key") || ""; } catch (error) {}
@@ -265,11 +267,20 @@ function renderQuiz() {
     '<button class="chip" id="quiz-prev" type="button">上一题</button>' +
     '<button class="chip" id="quiz-next" type="button">下一题</button></div>';
 }
+function coachForSong() {
+  if (focusName().indexOf("已经") === 0) {
+    return "根据一般现在时特殊用法其中一种‘用一般现在时的语法形式，表达已经发生的事’，分析以上句子语法对不对。别人已经说过的话，用 They say 这种现在时来说，不要写成 They said。";
+  }
+  return "根据一般现在时特殊用法其中一种‘在从句中，用一般现在时的语法形式，表达将来发生的事’，分析以上句子语法对不对";
+}
 function renderBuilder() {
   const coachBox = document.getElementById("coach");
   const sentenceBox = document.getElementById("sentence");
   const keyBox = document.getElementById("key-box");
-  if (coachBox) coachDraft = coachBox.value;
+  if (coachBox && coachSong >= 0) coachEdits[coachSong] = coachBox.value;
+  if (coachEdits[index] == null) coachEdits[index] = coachForSong();
+  coachDraft = coachEdits[index];
+  coachSong = index;
   if (sentenceBox) sentenceDraft = sentenceBox.value;
   if (keyBox && keyBox.value.trim()) savedKey = keyBox.value.trim();
   const all = studyLines();
@@ -448,7 +459,7 @@ function currentKey() {
   return DEEPSEEK_KEY || savedKey;
 }
 function askDeepSeek(text) {
-  const coach = (document.getElementById("coach") && document.getElementById("coach").value.trim()) || COACH_PROMPT;
+  const coach = (document.getElementById("coach") && document.getElementById("coach").value.trim()) || coachForSong();
   const direct = function () {
     const key = currentKey();
     if (!key || !DEEPSEEK_URL) return Promise.reject(new Error("no key"));
