@@ -15,7 +15,7 @@
   main { padding: 12px 12px 230px; }
   body.mode-mv { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
   body.mode-mv header { flex: none; }
-  body.mode-mv main { flex: 1; min-height: 0; padding: 0; overflow: hidden; }
+  body.mode-mv main { flex: 1; min-height: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
   body.mode-mv .dock { position: static; flex: none; }
   .line { padding: 12px 4px; border-bottom: 1px solid #f1f5f9; }
   .line b { display: block; font-size: 18px; line-height: 1.45; }
@@ -40,9 +40,11 @@
   .slider input { flex: 1; width: 100%; accent-color: #f59e0b; height: 24px; }
   .nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .nav button.on { color: #b45309; font-weight: 700; }
-  .mv { height: 100%; width: 100%; background: #000; overflow: hidden; position: relative; }
-  .mv video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .mv canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+  .mv { flex: 1; min-height: 0; background: #000; display: flex; align-items: center; justify-content: center; }
+  .mv video { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .mvline { flex: none; background: #000; color: #fff; text-align: center; padding: 8px 16px 12px; }
+  .mvline b { display: block; font-size: 16px; line-height: 1.35; }
+  .mvline p { margin: 4px 0 0; font-size: 14px; line-height: 1.4; color: rgba(255,255,255,.82); }
 </style>
 </head>
 <body class="mode-listen">
@@ -212,100 +214,27 @@ function renderBuilder() {
     keyField +
     '<button class="chip" id="check-sentence" type="button">看一看</button><div id="sentence-result"></div></div>';
 }
-function wrapLine(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = String(text || "").split(" ");
-  let line = "";
-  const rows = [];
-  words.forEach(function (word) {
-    const next = line ? line + " " + word : word;
-    if (ctx.measureText(next).width > maxWidth && line) {
-      rows.push(line);
-      line = word;
-    } else line = next;
-  });
-  if (line) rows.push(line);
-  rows.forEach(function (row, i) { ctx.fillText(row, x, y + i * lineHeight); });
-  return rows.length * lineHeight;
-}
-let mvFrame = 0;
-let lyricScroll = 0;
-function stopMv() {
-  if (mvFrame) cancelAnimationFrame(mvFrame);
-  mvFrame = 0;
-}
-function drawMv() {
-  if (mode !== "mv") return;
-  const canvas = document.getElementById("mvcanvas");
-  const clip = document.getElementById("mv");
-  if (!canvas || !clip) return;
-  const ctx = canvas.getContext("2d");
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const w = Math.max(2, Math.round(rect.width * dpr));
-  const h = Math.max(2, Math.round(rect.height * dpr));
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-  }
-  ctx.clearRect(0, 0, w, h);
-  const shade = ctx.createLinearGradient(0, h * 0.42, 0, h);
-  shade.addColorStop(0, "rgba(0,0,0,0)");
-  shade.addColorStop(1, "rgba(0,0,0,0.78)");
-  ctx.fillStyle = shade;
-  ctx.fillRect(0, h * 0.42, w, h * 0.58);
-  const rows = [];
-  lines().forEach(function (line, i) {
-    if (String(line.text || "").trim()) rows.push({ i: i, text: line.text, zh: line.translation || "" });
-  });
-  let target = 0;
-  const now = activeLine();
-  rows.forEach(function (row, n) { if (row.i <= now) target = n; });
-  lyricScroll += (target - lyricScroll) * 0.14;
-  const gap = Math.round(h * 0.12);
-  ctx.textAlign = "center";
-  ctx.shadowColor = "rgba(0,0,0,0.8)";
-  ctx.shadowBlur = 8;
-  rows.forEach(function (row, n) {
-    const y = h * 0.62 + (n - lyricScroll) * gap;
-    if (y < h * 0.4 || y > h - 10) return;
-    const near = Math.abs(n - lyricScroll) < 0.6;
-    ctx.fillStyle = near ? "#ffffff" : "rgba(255,255,255,0.5)";
-    ctx.font = (near ? "700 " : "500 ") + Math.round(near ? h * 0.045 : h * 0.032) + "px sans-serif";
-    const used = wrapLine(ctx, row.text, w / 2, y, w * 0.86, Math.round(h * 0.05));
-    if (near && row.zh) {
-      ctx.fillStyle = "rgba(255,255,255,0.88)";
-      ctx.font = "500 " + Math.round(h * 0.032) + "px sans-serif";
-      ctx.fillText(row.zh, w / 2, y + used + Math.round(h * 0.01));
-    }
-  });
-  ctx.shadowBlur = 0;
-  mvFrame = requestAnimationFrame(drawMv);
-}
 function renderMv() {
   const current = song() || {};
   if (!current.videoUrl) {
-    stopMv();
     stage.innerHTML = '<div class="card">这首还没有画面。歌和歌词还能照常听。</div>';
     return;
   }
-  stage.innerHTML = '<div class="mv"><canvas id="mvcanvas"></canvas><video id="mv" src="' + escapeHtml(current.videoUrl) +
-    '" muted playsinline></video></div>';
+  const line = lines()[activeLine()] || {};
+  stage.innerHTML = '<div class="mv"><video id="mv" src="' + escapeHtml(current.videoUrl) +
+    '" muted playsinline></video></div><div class="mvline" id="mvline"><b>' +
+    escapeHtml(line.text || "") + '</b><p>' + escapeHtml(line.translation || "") + '</p></div>';
   const clip = document.getElementById("mv");
   if (!clip) return;
   clip.onerror = function () {
-    stopMv();
     stage.innerHTML = '<div class="card">画面没加载出来。先听歌、看歌词就行。</div>';
   };
   try { clip.currentTime = audio.currentTime || 0; } catch (error) {}
   if (!audio.paused) clip.play();
-  lyricScroll = 0;
-  stopMv();
-  drawMv();
 }
 function render() {
   paintTabs();
   document.body.className = "mode-" + mode;
-  if (mode !== "mv") stopMv();
   if (mode === "grammar") renderGrammar();
   else if (mode === "karaoke") renderQuiz();
   else if (mode === "builder") renderBuilder();
@@ -509,7 +438,10 @@ audio.ontimeupdate = function () {
     const clip = document.getElementById("mv");
     const cap = document.getElementById("mvline");
     const line = lines()[activeLine()] || {};
-    if (cap) cap.innerHTML = "<b>" + escapeHtml(line.text || "") + "</b><p>" + escapeHtml(line.translation || "") + "</p>";
+    if (cap && cap.dataset.n !== String(activeLine())) {
+      cap.dataset.n = String(activeLine());
+      cap.innerHTML = "<b>" + escapeHtml(line.text || "") + "</b><p>" + escapeHtml(line.translation || "") + "</p>";
+    }
     if (clip) {
       try {
         if (Math.abs(clip.currentTime - audio.currentTime) > 0.45) clip.currentTime = audio.currentTime;
