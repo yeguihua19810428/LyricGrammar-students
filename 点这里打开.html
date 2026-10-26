@@ -41,7 +41,8 @@
   .transport .chip { padding: 8px 10px; min-height: 36px; font-size: 13px; }
   .slider { display: flex; align-items: center; gap: 8px; padding: 0 12px 6px; font-size: 12px; color: #64748b; }
   .slider input { flex: 1; width: 100%; accent-color: #f59e0b; height: 24px; }
-  .nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .nav button { font-size: 12px; padding: 8px 0; }
   .nav button.on { color: #b45309; font-weight: 700; }
   .mv { flex: 1; min-height: 0; background: #000; display: flex; align-items: center; justify-content: center; }
   .mv video { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -73,6 +74,7 @@
     <button type="button" data-mode="grammar">这几句</button>
     <button type="button" data-mode="karaoke">填空</button>
     <button type="button" data-mode="builder">自己的</button>
+    <button type="button" data-mode="exam">实训</button>
   </nav>
 </div>
 <audio id="audio" preload="none"></audio>
@@ -121,6 +123,22 @@ let quizIndex = 0;
 let quizAnswer = "";
 let quizLocked = false;
 let quizScore = 0;
+let examIndex = 0;
+let examPick = -1;
+const EXAMS = [
+  {
+    points: ["以后的事，If 后面当现在说"],
+    stem: "Which of the following sentences contains subjunctive mood?",
+    options: [
+      "Lucy insisted that her son get home before 5 o'clock.",
+      "She used to drive to work, but now she takes the city metro.",
+      "Walk straight ahead, and don't turn till the second traffic lights.",
+      "Paul will cancel his flight if he cannot get his visa by Friday."
+    ],
+    answer: 0,
+    note: "D 才是这首歌的说法：以后的事，If 后面用 cannot，will 放在后面那句。这题要挑的是在假装的那句，所以选 A。"
+  }
+];
 function song() { return SONGS[index]; }
 function lines() { return (song() && song().lines) || []; }
 function focusName() {
@@ -323,12 +341,36 @@ function renderMv() {
     if (!audio.paused) node.play();
   });
 }
+function examItems() {
+  const point = focusName();
+  return EXAMS.filter(function (item) { return item.points.indexOf(point) >= 0; });
+}
+function renderExam() {
+  const items = examItems();
+  if (!items.length) {
+    stage.innerHTML = '<div class="card"><b>' + escapeHtml(focusName()) + '</b><p>这份专四里，没有直接考这件事的题。</p></div>';
+    return;
+  }
+  if (examIndex >= items.length) examIndex = 0;
+  const item = items[examIndex];
+  const options = item.options.map(function (text, i) {
+    const mark = examPick < 0 ? "" : (i === item.answer ? " good" : (i === examPick ? " bad" : ""));
+    const label = "ABCD"[i] || String(i + 1);
+    return '<button class="opt' + mark + '" data-exam="' + i + '" type="button"><b>' + label + '</b> ' + escapeHtml(text) + '</button>';
+  }).join("");
+  const note = examPick < 0 ? "" : '<p>' + escapeHtml(item.note) + '</p>';
+  stage.innerHTML = '<div class="card"><b>专四真题</b><p>第 ' + (examIndex + 1) + ' / ' + items.length + ' 题，只练这首歌的事。</p><p>' +
+    escapeHtml(item.stem) + '</p>' + options + note +
+    '<button class="chip" id="exam-prev" type="button">上一题</button> ' +
+    '<button class="chip" id="exam-next" type="button">下一题</button></div>';
+}
 function render() {
   paintTabs();
   document.body.className = "mode-" + mode;
   if (mode === "grammar") renderGrammar();
   else if (mode === "karaoke") renderQuiz();
   else if (mode === "builder") renderBuilder();
+  else if (mode === "exam") renderExam();
   else if (mode === "mv") renderMv();
   else renderListen();
 }
@@ -361,6 +403,8 @@ function loadSong(next, autoplay) {
   quizLocked = false;
   quizScore = 0;
   loopLine = null;
+  examIndex = 0;
+  examPick = -1;
   document.getElementById("loop").classList.remove("on");
   render();
 }
@@ -611,6 +655,25 @@ stage.onclick = function (event) {
   if (event.target.id === "quiz-next") { quizIndex += 1; quizAnswer = ""; quizLocked = false; renderQuiz(); return; }
   if (event.target.id === "quiz-restart") { quizIndex = 0; quizAnswer = ""; quizLocked = false; quizScore = 0; renderQuiz(); return; }
   if (event.target.id === "check-sentence") checkSentence();
+  const examOption = event.target.closest("[data-exam]");
+  if (examOption && examPick < 0) {
+    examPick = Number(examOption.dataset.exam);
+    renderExam();
+    return;
+  }
+  if (event.target.id === "exam-prev") {
+    const total = examItems().length || 1;
+    examIndex = (examIndex - 1 + total) % total;
+    examPick = -1;
+    renderExam();
+    return;
+  }
+  if (event.target.id === "exam-next") {
+    const total = examItems().length || 1;
+    examIndex = (examIndex + 1) % total;
+    examPick = -1;
+    renderExam();
+  }
 };
 audio.ontimeupdate = function () {
   const seek = document.getElementById("seek");
